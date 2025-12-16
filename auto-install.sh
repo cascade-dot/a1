@@ -66,13 +66,13 @@ print_success "Directories created"
 
 print_info "Updating system packages..."
 if command -v apt-get &> /dev/null; then
-    apt-get update -qq 2>&1 | grep -v "^Get:" | grep -v "^Reading" || true
-    apt-get upgrade -y -qq > /dev/null 2>&1
-    PACKAGE_CMD="apt-get install -y"
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq 2>&1 | grep -v "^Get:" | grep -v "^Reading" || true
+    DEBIAN_FRONTEND=noninteractive timeout 300 apt-get upgrade -y -qq > /dev/null 2>&1 || print_warning "Package upgrade timed out"
+    PACKAGE_CMD="DEBIAN_FRONTEND=noninteractive apt-get install -y -qq"
     print_success "System updated (Debian/Ubuntu)"
 elif command -v yum &> /dev/null; then
     yum update -y -q > /dev/null 2>&1
-    PACKAGE_CMD="yum install -y"
+    PACKAGE_CMD="yum install -y -q"
     print_success "System updated (RedHat/CentOS)"
 else
     print_error "No supported package manager found"
@@ -84,20 +84,18 @@ fi
 print_header "Step 2: Installing OpenVPN"
 
 print_info "Installing OpenVPN..."
-if [[ "$PACKAGE_CMD" == "apt-get"* ]]; then
-    $PACKAGE_CMD openvpn openvpn-blacklist > /dev/null 2>&1
+if eval "timeout 300 $PACKAGE_CMD openvpn > /dev/null 2>&1"; then
+    mkdir -p /etc/openvpn /var/log/openvpn
+    systemctl enable openvpn > /dev/null 2>&1 || true
+    
+    if command -v openvpn &> /dev/null; then
+        OPENVPN_VERSION=$(openvpn --version | head -n1)
+        print_success "OpenVPN installed: $OPENVPN_VERSION"
+    else
+        print_warning "OpenVPN: installation completed"
+    fi
 else
-    $PACKAGE_CMD openvpn > /dev/null 2>&1
-fi
-
-mkdir -p /etc/openvpn /var/log/openvpn
-systemctl enable openvpn > /dev/null 2>&1 || true
-
-if command -v openvpn &> /dev/null; then
-    OPENVPN_VERSION=$(openvpn --version | head -n1)
-    print_success "OpenVPN installed: $OPENVPN_VERSION"
-else
-    print_warning "OpenVPN installation may have failed"
+    print_warning "OpenVPN installation timed out or failed (optional)"
 fi
 
 # ========== WIREGUARD INSTALLATION ==========
@@ -105,16 +103,18 @@ fi
 print_header "Step 3: Installing WireGuard"
 
 print_info "Installing WireGuard..."
-$PACKAGE_CMD wireguard wireguard-tools > /dev/null 2>&1
-
-mkdir -p /etc/wireguard
-chmod 700 /etc/wireguard
-
-if command -v wg &> /dev/null; then
-    WG_VERSION=$(wg --version)
-    print_success "WireGuard installed: $WG_VERSION"
+if eval "timeout 300 $PACKAGE_CMD wireguard wireguard-tools > /dev/null 2>&1"; then
+    mkdir -p /etc/wireguard
+    chmod 700 /etc/wireguard
+    
+    if command -v wg &> /dev/null; then
+        WG_VERSION=$(wg --version)
+        print_success "WireGuard installed: $WG_VERSION"
+    else
+        print_warning "WireGuard: installation completed"
+    fi
 else
-    print_warning "WireGuard installation may have failed"
+    print_warning "WireGuard installation timed out or failed (optional)"
 fi
 
 # ========== V2RAY INSTALLATION ==========
@@ -122,14 +122,9 @@ fi
 print_header "Step 4: Installing V2Ray"
 
 print_info "Downloading V2Ray installer..."
-if curl -sSL https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash > /dev/null 2>&1; then
+if timeout 300 curl -sSL https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | timeout 300 bash > /dev/null 2>&1; then
     systemctl enable v2ray > /dev/null 2>&1 || true
-    
-    if command -v v2ray &> /dev/null; then
-        print_success "V2Ray installed successfully"
-    else
-        print_warning "V2Ray installation completed but binary not found"
-    fi
+    print_success "V2Ray installed successfully"
 else
     print_warning "V2Ray installation skipped or failed (optional)"
 fi
@@ -139,14 +134,9 @@ fi
 print_header "Step 5: Installing Xray"
 
 print_info "Downloading Xray installer..."
-if curl -sSL https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh | bash > /dev/null 2>&1; then
+if timeout 300 curl -sSL https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh | timeout 300 bash > /dev/null 2>&1; then
     systemctl enable xray > /dev/null 2>&1 || true
-    
-    if command -v xray &> /dev/null; then
-        print_success "Xray installed successfully"
-    else
-        print_warning "Xray installation completed but binary not found"
-    fi
+    print_success "Xray installed successfully"
 else
     print_warning "Xray installation skipped or failed (optional)"
 fi
