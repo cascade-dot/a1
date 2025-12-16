@@ -1,9 +1,9 @@
 #!/bin/bash
 # utils/logger.sh - Функции логирования
 
-readonly LOG_DIR="/var/log/cascade-vpn"
-readonly LOG_FILE="${LOG_DIR}/install.log"
-readonly ERROR_LOG="${LOG_DIR}/error.log"
+LOG_DIR="/var/log/cascade-vpn"
+LOG_FILE="${LOG_DIR}/install.log"
+ERROR_LOG="${LOG_DIR}/error.log"
 
 # Инициализация логирования
 init_logging() {

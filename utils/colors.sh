@@ -2,21 +2,21 @@
 # utils/colors.sh - Функции для цветного вывода в консоль
 
 # Цветовые коды ANSI
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly PURPLE='\033[0;35m'
-readonly CYAN='\033[0;36m'
-readonly WHITE='\033[1;37m'
-readonly GRAY='\033[0;90m'
-readonly NC='\033[0m'  # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[1;37m'
+GRAY='\033[0;90m'
+NC='\033[0m'  # No Color
 
 # Спецсимволы
-readonly CHECK_MARK='✓'
-readonly CROSS_MARK='✗'
-readonly ARROW='→'
-readonly WARN_MARK='⚠'
+CHECK_MARK='✓'
+CROSS_MARK='✗'
+ARROW='→'
+WARN_MARK='⚠'
 
 # Функции вывода с цветами
 print_error() {
