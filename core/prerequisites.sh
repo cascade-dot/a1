@@ -3,10 +3,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../utils/colors.sh"
-source "$SCRIPT_DIR/../utils/logger.sh"
-source "$SCRIPT_DIR/../utils/validators.sh"
+PREREQ_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$PREREQ_DIR/../utils/colors.sh"
+source "$PREREQ_DIR/../utils/logger.sh"
+source "$PREREQ_DIR/../utils/validators.sh"
 
 # Проверить и установить основные зависимости
 setup_prerequisites() {

@@ -4,9 +4,9 @@
 set -euo pipefail
 
 # Подключаем утилиты
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/colors.sh"
-source "$SCRIPT_DIR/../../utils/logger.sh"
+WG_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$WG_SCRIPT_DIR/../../utils/colors.sh"
+source "$WG_SCRIPT_DIR/../../utils/logger.sh"
 
 # Конфигурация
 readonly CONFIG_DIR="/etc/wireguard"

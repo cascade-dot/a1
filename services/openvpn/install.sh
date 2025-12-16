@@ -3,9 +3,9 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/colors.sh"
-source "$SCRIPT_DIR/../../utils/logger.sh"
+OVPN_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$OVPN_SCRIPT_DIR/../../utils/colors.sh"
+source "$OVPN_SCRIPT_DIR/../../utils/logger.sh"
 
 # Configuration
 readonly OPENVPN_DIR="/etc/openvpn"
@@ -264,12 +264,12 @@ install_openvpn_ui() {
     mkdir -p "$ui_dir/templates"
     
     # Copy main script
-    cp "$SCRIPT_DIR/openvpn-ui.py" "$ui_dir/" || return 1
+    cp "$OVPN_SCRIPT_DIR/openvpn-ui.py" "$ui_dir/" || return 1
     
     # Copy templates
-    cp "$SCRIPT_DIR/templates/login.html" "$ui_dir/templates/" || return 1
-    cp "$SCRIPT_DIR/templates/dashboard.html" "$ui_dir/templates/" || return 1
-    cp "$SCRIPT_DIR/templates/settings.html" "$ui_dir/templates/" || return 1
+    cp "$OVPN_SCRIPT_DIR/templates/login.html" "$ui_dir/templates/" || return 1
+    cp "$OVPN_SCRIPT_DIR/templates/dashboard.html" "$ui_dir/templates/" || return 1
+    cp "$OVPN_SCRIPT_DIR/templates/settings.html" "$ui_dir/templates/" || return 1
     
     chmod +x "$ui_dir/openvpn-ui.py"
     

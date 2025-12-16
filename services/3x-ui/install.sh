@@ -3,9 +3,9 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/colors.sh"
-source "$SCRIPT_DIR/../../utils/logger.sh"
+UI3X_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$UI3X_SCRIPT_DIR/../../utils/colors.sh"
+source "$UI3X_SCRIPT_DIR/../../utils/logger.sh"
 
 # Конфигурация
 readonly INSTALL_DIR="/opt/3x-ui"

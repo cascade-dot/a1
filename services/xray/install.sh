@@ -3,10 +3,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/colors.sh"
-source "$SCRIPT_DIR/../../utils/logger.sh"
-source "$SCRIPT_DIR/../../utils/validators.sh"
+XRAY_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$XRAY_SCRIPT_DIR/../../utils/colors.sh"
+source "$XRAY_SCRIPT_DIR/../../utils/logger.sh"
+source "$XRAY_SCRIPT_DIR/../../utils/validators.sh"
 
 readonly INSTALL_DIR="/etc/xray"
 readonly CONFIG_FILE="$INSTALL_DIR/config.json"

@@ -3,10 +3,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../utils/colors.sh"
-source "$SCRIPT_DIR/../../utils/logger.sh"
-source "$SCRIPT_DIR/../../utils/validators.sh"
+V2R_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$V2R_SCRIPT_DIR/../../utils/colors.sh"
+source "$V2R_SCRIPT_DIR/../../utils/logger.sh"
+source "$V2R_SCRIPT_DIR/../../utils/validators.sh"
 
 readonly INSTALL_DIR="/etc/v2ray"
 readonly CONFIG_FILE="$INSTALL_DIR/config.json"

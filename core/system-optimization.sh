@@ -3,10 +3,10 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../utils/colors.sh"
-source "$SCRIPT_DIR/../utils/logger.sh"
-source "$SCRIPT_DIR/../utils/validators.sh"
+SYSOPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SYSOPT_DIR/../utils/colors.sh"
+source "$SYSOPT_DIR/../utils/logger.sh"
+source "$SYSOPT_DIR/../utils/validators.sh"
 
 # Оптимизация параметров ядра для высокой пропускной способности
 optimize_kernel_parameters() {
