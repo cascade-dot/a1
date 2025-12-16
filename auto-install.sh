@@ -1,7 +1,10 @@
 #!/bin/bash
-# CASCADE VPN UNIVERSAL - Interactive Installer
-# First asks what to install, then installs it
-# Usage: sudo bash auto-install.sh
+# CASCADE VPN UNIVERSAL - Remote Server Installer
+# For use on REMOTE machine - installs VPN server only
+# Usage: 
+#   sudo bash auto-install.sh          (interactive mode)
+#   curl ... | sudo bash -s 1          (option 1 = OpenVPN)
+#   curl ... | sudo bash -s 5          (option 5 = All services)
 
 set -euo pipefail
 
@@ -43,21 +46,26 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# ==================== SHOW MENU ====================
+# ==================== GET CHOICE ====================
 
-print_header "CASCADE VPN UNIVERSAL v$VERSION"
+CHOICE="${1:-}"
 
-echo "What would you like to install?"
-echo ""
-echo -e "  ${CYAN}[1]${NC} OpenVPN"
-echo -e "  ${CYAN}[2]${NC} WireGuard"
-echo -e "  ${CYAN}[3]${NC} V2Ray"
-echo -e "  ${CYAN}[4]${NC} Xray"
-echo -e "  ${CYAN}[5]${NC} All Services (OpenVPN + WireGuard + V2Ray + Xray)"
-echo -e "  ${CYAN}[6]${NC} System Optimization Only"
-echo -e "  ${CYAN}[0]${NC} Exit"
-echo ""
-read -p "Select option [0-6]: " CHOICE
+# If no argument, show menu
+if [[ -z "$CHOICE" ]]; then
+    print_header "CASCADE VPN UNIVERSAL v$VERSION - REMOTE SERVER SETUP"
+    
+    echo "Select VPN service to install on this remote server:"
+    echo ""
+    echo -e "  ${CYAN}[1]${NC} OpenVPN"
+    echo -e "  ${CYAN}[2]${NC} WireGuard"
+    echo -e "  ${CYAN}[3]${NC} V2Ray"
+    echo -e "  ${CYAN}[4]${NC} Xray"
+    echo -e "  ${CYAN}[5]${NC} All Services (OpenVPN + WireGuard + V2Ray + Xray)"
+    echo -e "  ${CYAN}[6]${NC} System Optimization Only"
+    echo -e "  ${CYAN}[0]${NC} Exit"
+    echo ""
+    read -p "Select option [0-6]: " CHOICE
+fi
 
 case $CHOICE in
     0)
@@ -75,7 +83,7 @@ esac
 
 # ==================== SYSTEM SETUP ====================
 
-print_header "System Optimization"
+print_header "System Setup"
 
 print_info "Creating directories..."
 mkdir -p /etc/cascade-vpn /var/lib/cascade-vpn /var/log/cascade-vpn
@@ -157,19 +165,19 @@ fi
 
 print_header "Installation Complete!"
 
-echo "✓ CONFIGURATION:"
+echo "✓ CONFIGURATION DIRECTORIES:"
 echo "  • Configuration: /etc/cascade-vpn"
 echo "  • Data: /var/lib/cascade-vpn"
 echo "  • Logs: /var/log/cascade-vpn"
 echo ""
 
 echo "📝 NEXT STEPS:"
-echo "  1. Configure your services"
+echo "  1. Configure your VPN services"
 echo "  2. Start services: systemctl start [service-name]"
 echo "  3. Check status: systemctl status [service-name]"
 echo ""
 
-print_success "VPN services are ready!"
+print_success "VPN Server is ready for configuration!"
 echo ""
 
 exit 0
