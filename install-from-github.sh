@@ -261,7 +261,18 @@ main() {
     
     while true; do
         show_menu
-        read -p "Enter your choice [0-7]: " choice
+        
+        # Read input - handle both interactive and piped execution
+        if [[ -t 0 ]]; then
+            read -p "Enter your choice [0-7]: " choice
+        else
+            read -t 0.1 choice 2>/dev/null || choice=""
+        fi
+        
+        # If no input, default to exit
+        if [[ -z "$choice" ]]; then
+            break
+        fi
         
         case $choice in
             1)
@@ -295,7 +306,12 @@ main() {
         esac
         
         echo ""
-        read -p "Install another component? [y/N]: " another
+        if [[ -t 0 ]]; then
+            read -p "Install another component? [y/N]: " another
+        else
+            another="n"
+        fi
+        
         if [[ "$another" != "y" && "$another" != "Y" ]]; then
             break
         fi
