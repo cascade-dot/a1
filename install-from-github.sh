@@ -256,24 +256,13 @@ complete_setup() {
 # ==================== MAIN LOOP ====================
 
 main() {
+    local choice="${1:-}"
+    
     system_optimization
     echo ""
     
-    while true; do
-        show_menu
-        
-        # Read input - handle both interactive and piped execution
-        if [[ -t 0 ]]; then
-            read -p "Enter your choice [0-7]: " choice
-        else
-            read -t 0.1 choice 2>/dev/null || choice=""
-        fi
-        
-        # If no input, default to exit
-        if [[ -z "$choice" ]]; then
-            break
-        fi
-        
+    # If choice provided via argument, execute it directly
+    if [[ -n "$choice" ]]; then
         case $choice in
             1)
                 install_3x_ui
@@ -301,37 +290,97 @@ main() {
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please try again."
+                print_error "Invalid choice: $choice"
+                exit 1
                 ;;
         esac
         
-        echo ""
-        if [[ -t 0 ]]; then
-            read -p "Install another component? [y/N]: " another
-        else
-            another="n"
-        fi
+        print_header "Installation Complete"
+        print_success "Cascade VPN setup finished!"
         
-        if [[ "$another" != "y" && "$another" != "Y" ]]; then
-            break
-        fi
+        echo "📁 Important directories:"
+        echo "   Configuration: /etc/cascade-vpn"
+        echo "   Logs: /var/log/cascade-vpn"
+        echo "   Data: /var/lib/cascade-vpn"
         echo ""
-    done
+        
+        exit 0
+    fi
     
-    # Final summary
-    print_header "Installation Complete"
-    print_success "Cascade VPN setup finished!"
-    
-    echo "📁 Important directories:"
-    echo "   Configuration: /etc/cascade-vpn"
-    echo "   Logs: /var/log/cascade-vpn"
-    echo "   Data: /var/lib/cascade-vpn"
-    echo ""
-    echo "🚀 Next steps:"
-    echo "   1. Configure your VPN services"
-    echo "   2. Start services: systemctl start wireguard@wg0"
-    echo "   3. Check status: systemctl status"
-    echo ""
+    # If stdin is a terminal, run interactive mode
+    if [[ -t 0 ]]; then
+        while true; do
+            show_menu
+            read -p "Enter your choice [0-7]: " choice
+            
+            case $choice in
+                1)
+                    install_3x_ui
+                    ;;
+                2)
+                    install_wireguard
+                    ;;
+                3)
+                    install_openvpn
+                    ;;
+                4)
+                    install_v2ray
+                    ;;
+                5)
+                    install_xray
+                    ;;
+                6)
+                    system_optimization
+                    ;;
+                7)
+                    complete_setup
+                    ;;
+                0)
+                    print_info "Installation cancelled"
+                    exit 0
+                    ;;
+                *)
+                    print_error "Invalid choice. Please try again."
+                    ;;
+            esac
+            
+            echo ""
+            read -p "Install another component? [y/N]: " another
+            if [[ "$another" != "y" && "$another" != "Y" ]]; then
+                break
+            fi
+            echo ""
+        done
+        
+        print_header "Installation Complete"
+        print_success "Cascade VPN setup finished!"
+        
+        echo "📁 Important directories:"
+        echo "   Configuration: /etc/cascade-vpn"
+        echo "   Logs: /var/log/cascade-vpn"
+        echo "   Data: /var/lib/cascade-vpn"
+        echo ""
+    else
+        # Non-interactive: just do system optimization
+        print_info "Running in non-interactive mode (stdin is piped)"
+        print_info "System optimization completed!"
+        print_info ""
+        print_info "To install services, use:"
+        print_info "  curl ... | sudo bash -s [option]"
+        print_info ""
+        print_info "Options:"
+        print_info "  1 = 3X-UI Control Panel"
+        print_info "  2 = WireGuard VPN"
+        print_info "  3 = OpenVPN"
+        print_info "  4 = V2Ray Proxy"
+        print_info "  5 = Xray Proxy"
+        print_info "  6 = System Optimization"
+        print_info "  7 = Complete Setup (All)"
+        echo ""
+        
+        print_header "Setup Complete"
+        print_success "System is ready for VPN services!"
+    fi
 }
 
 # ==================== ENTRY POINT ====================
