@@ -1,0 +1,28 @@
+[Unit]
+Description=WireGuard Easy VPN Service
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/wg-easy
+
+# Start container
+ExecStartPre=/usr/bin/docker-compose pull
+ExecStart=/usr/bin/docker-compose up
+
+# Stop container
+ExecStop=/usr/bin/docker-compose down
+
+Restart=on-failure
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wg-easy
+
+# Environment
+EnvironmentFile=/opt/wg-easy/.env
+
+[Install]
+WantedBy=multi-user.target

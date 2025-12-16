@@ -1,0 +1,38 @@
+[Unit]
+Description=Cascade VPN Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/cascade-vpn
+
+# Main service executable
+ExecStart=/opt/cascade-vpn/bin/cascade-vpn-core
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cascade-vpn
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/etc/cascade-vpn /var/log/cascade-vpn /var/lib/cascade-vpn
+
+# Limits
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# Environment
+Environment="CASCADE_VPN_CONFIG=/etc/cascade-vpn"
+Environment="CASCADE_VPN_LOGS=/var/log/cascade-vpn"
+Environment="CASCADE_VPN_DATA=/var/lib/cascade-vpn"
+
+[Install]
+WantedBy=multi-user.target

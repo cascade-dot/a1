@@ -1,0 +1,36 @@
+[Unit]
+Description=OpenVPN service for Cascade VPN
+Documentation=https://github.com/adminbk/cascade-vpn-universal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+ProtectSystem=full
+ProtectHome=yes
+NoNewPrivileges=yes
+KillMode=process
+
+# OpenVPN process
+ExecStart=/usr/sbin/openvpn --config /etc/openvpn/server.conf
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# User
+User=root
+Group=root
+
+# Security
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

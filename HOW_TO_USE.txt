@@ -1,0 +1,324 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    CASCADE VPN UNIVERSAL - READY TO DEPLOY                    ║
+║                             Version 1.0.0                                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🚀 ONE-LINE INSTALLATION COMMAND:
+═══════════════════════════════════════════════════════════════════════════════
+
+    sudo bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)
+
+
+📋 WHAT THIS DOES:
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Downloads latest version from GitHub
+✅ Checks system requirements (Internet, packages, permissions)
+✅ Shows interactive menu with options
+✅ Installs chosen VPN protocol OR sets up port forwarding
+✅ Generates client configurations
+✅ Configures firewall rules
+✅ Optimizes system settings
+✅ Creates logs for troubleshooting
+
+
+🎯 TWO INSTALLATION MODES:
+═══════════════════════════════════════════════════════════════════════════════
+
+MODE 1: DIRECT VPN INSTALLATION (Single Server)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When to use:
+  • You have one server
+  • Clients connect directly to this server
+  • No cascade/port forwarding needed
+
+Installation:
+  sudo bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)
+  
+Menu selection:
+  [1] Install VPN on this server
+  
+Choose protocol:
+  [1] VLESS + Reality (recommended - stealthy)
+  [2] WireGuard (recommended - fast)
+  [3] OpenVPN (universal compatibility)
+
+Result:
+  Client → VPN Server → Internet
+
+
+MODE 2: CASCADE SETUP (Two Servers with Port Forwarding)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When to use:
+  • You have TWO servers
+  • Want VPN on one server, port forwarding on another
+  • Need flexible port mapping
+
+Installation:
+  sudo bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)
+  
+Menu selection:
+  [2] Setup port forwarding (Cascade to remote server)
+  
+Provide credentials:
+  Remote server IP: 192.168.1.100
+  Username: root
+  Password: ****
+  
+Choose protocol:
+  [1] VLESS + Reality
+  [2] WireGuard
+  [3] OpenVPN
+
+What happens:
+  1. Script connects via SSH to primary server
+  2. Installs VPN service on primary server
+  3. Generates client configurations
+  4. Returns to local server
+  5. Configures port forwarding rules on local server
+
+Result:
+  Client → Local Server (Port 443) → Primary Server (443) → VPN → Internet
+
+
+🔐 SUPPORTED VPN PROTOCOLS:
+═══════════════════════════════════════════════════════════════════════════════
+
+VLESS + REALITY (Recommended for Stealth)
+───────────────────────────────────────────
+  ✓ Modern Xray technology
+  ✓ Disguised as normal HTTPS traffic (hard to block)
+  ✓ Fast performance
+  ✓ Port: 443 (standard HTTPS)
+  
+  Client Apps:
+    Windows: V2rayN, Clash for Windows
+    macOS: V2rayN
+    Linux: Xray CLI, NekoBox
+    iOS: ShadowRocket
+    Android: NekoBox, V2rayNG
+
+
+WIREGUARD (Recommended for Speed)
+──────────────────────────────────
+  ✓ Simple & minimal configuration
+  ✓ Built-in Linux kernel support
+  ✓ Very fast performance
+  ✓ Port: 51820 (UDP)
+  
+  Client Apps:
+    All Platforms: Official WireGuard App
+
+
+OPENVPN (Universal Compatibility)
+──────────────────────────────────
+  ✓ Works on all platforms
+  ✓ Maximum compatibility
+  ✓ Battle-tested technology
+  ✓ Port: 1194 (UDP/TCP)
+  
+  Client Apps:
+    All Platforms: OpenVPN Connect, TunnelBlick
+
+
+📱 QUICK CLIENT REFERENCE:
+═══════════════════════════════════════════════════════════════════════════════
+
+VLESS+Reality:
+  Windows: V2rayN (github.com/2dust/v2rayN)
+  macOS: V2rayN
+  Linux: Xray CLI (github.com/XTLS/Xray-core)
+  iOS: ShadowRocket (App Store)
+  Android: NekoBox (github.com/MatsuriDayo/NekoBoxForAndroid)
+
+WireGuard:
+  Windows: WireGuard (wireguard.com)
+  macOS: WireGuard (wireguard.com)
+  Linux: wireguard (built-in)
+  iOS: WireGuard (App Store)
+  Android: WireGuard (Google Play)
+
+OpenVPN:
+  Windows: OpenVPN Connect
+  macOS: TunnelBlick (tunnelblick.net)
+  Linux: openvpn (built-in)
+  iOS: OpenVPN Connect
+  Android: OpenVPN Connect
+
+
+🌐 WEB PANEL ACCESS:
+═══════════════════════════════════════════════════════════════════════════════
+
+After installation, EACH VPN protocol has its own management panel:
+
+VLESS + Reality → 3X-UI (Xray Management Panel)
+  ⚠️  3X-UI generates UNIQUE access URL with security token
+  
+  After installation check:
+    systemctl status 3x-ui
+    journalctl -u 3x-ui -n 50
+  
+  Output will show:
+    URL: https://server-ip:RANDOM_PORT/?token=SECURE_TOKEN
+    Default login: admin / admin (CHANGE IMMEDIATELY!)
+  
+  Example output:
+    3X-UI running on: https://192.168.1.100:8988/?token=a1b2c3d4e5f6
+  
+  SAVE THIS URL - It's your secure access link!
+
+
+WireGuard → wg-easy
+  URL: http://your-server-ip:51821
+  Direct access (no login by default)
+  Configure clients and settings in web UI
+
+
+OpenVPN → OpenVPN-UI
+  URL: https://your-server-ip:8443
+  Username: admin
+  Password: Shown during installation (check logs)
+  Login required for all operations
+
+
+FINDING YOUR WEB PANEL DETAILS:
+──────────────────────────────
+
+For VLESS/3X-UI (find security token):
+  sudo journalctl -u 3x-ui -n 100 | grep -i "port\|token\|url\|running"
+
+For WireGuard (simple access):
+  echo "http://$(hostname -I | awk '{print $1}'):51821"
+
+For OpenVPN (with login):
+  echo "https://$(hostname -I | awk '{print $1}'):8443"
+  cat /var/log/openvpn/ui-setup.log  # See initial password
+
+
+🛠️ PORT FORWARDING EXAMPLES:
+═══════════════════════════════════════════════════════════════════════════════
+
+Example 1: VLESS+Reality on Port 443
+─────────────────────────────────────
+  Primary Server: 192.168.1.100:443
+  Local Server: Forward 0.0.0.0:443 → 192.168.1.100:443
+  Client connects to: your_local_ip:443
+
+Example 2: WireGuard on Port 51820 (UDP)
+─────────────────────────────────────────
+  Primary Server: 192.168.1.100:51820
+  Local Server: Forward 0.0.0.0:51820 → 192.168.1.100:51820
+  Client connects to: your_local_ip:51820
+
+Example 3: Custom Port Mapping
+──────────────────────────────
+  Map local port 8443 to remote port 443
+  Primary Server: 192.168.1.100:443
+  Local Server: Forward 0.0.0.0:8443 → 192.168.1.100:443
+  Client connects to: your_local_ip:8443
+
+
+⚙️ SYSTEM REQUIREMENTS:
+═══════════════════════════════════════════════════════════════════════════════
+
+Minimum Hardware:
+  • 1+ CPU core
+  • 512 MB RAM
+  • 500 MB free disk space
+
+Operating System:
+  ✓ Ubuntu 18.04+
+  ✓ Debian 10+
+  ✓ CentOS 7+
+  ✓ RHEL 7+
+
+Network:
+  • Root/sudo access
+  • Internet connection
+  • For cascade: SSH access between servers
+
+
+🚨 TROUBLESHOOTING:
+═══════════════════════════════════════════════════════════════════════════════
+
+Installation fails?
+  → Check: sudo apt install curl git openssh-client
+  → Check internet: ping 8.8.8.8
+  → Check logs: cat /var/log/cascade-vpn/install.log
+
+Port forwarding not working?
+  → Check rules: sudo iptables -t nat -L -n -v
+  → Check port is open: sudo netstat -tlnp | grep cascade
+  → Enable forwarding: echo 1 > /proc/sys/net/ipv4/ip_forward
+
+Can't connect to client?
+  → Verify VPN is running: sudo systemctl status cascade-vpn
+  → Check firewall: sudo ufw status
+  → Review logs: journalctl -u cascade-vpn -f
+
+Traffic is blocked/filtered?
+  → Try WireGuard with UDP2Raw masking (hides as HTTPS)
+  → Try VLESS + Reality (appears as normal HTTPS traffic)
+  → Check: Does HTTPS (port 443) work normally? If yes, use those protocols
+  → Enable obfuscation: Script will offer this during installation
+
+
+📚 DOCUMENTATION:
+═══════════════════════════════════════════════════════════════════════════════
+
+File                          | Purpose
+──────────────────────────────┼──────────────────────────────────────────
+README_CASCADE.md             | Quick start guide
+CASCADE_ARCHITECTURE.md       | Protocol details & comparison
+INSTALL_GUIDE.md             | Full installation instructions
+FINAL_SUMMARY.md             | Project completion details
+DEVELOPMENT_REPORT.md        | Technical implementation
+
+
+🔗 IMPORTANT LINKS:
+═══════════════════════════════════════════════════════════════════════════════
+
+GitHub Repository:
+  https://github.com/adminbk/cascade-vpn-universal
+
+Raw Installer:
+  https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn
+
+GitHub Issues (Support):
+  https://github.com/adminbk/cascade-vpn-universal/issues
+
+
+💡 QUICK TIPS:
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ Always use strong passwords
+✓ Change default ports after installation
+✓ Use SSH keys instead of passwords when possible
+✓ Enable firewall on both servers
+✓ Keep your system updated: apt update && apt upgrade
+✓ Monitor logs: tail -f /var/log/cascade-vpn/install.log
+✓ For cascade mode: ensure SSH connectivity between servers
+
+
+📝 LICENSE:
+═══════════════════════════════════════════════════════════════════════════════
+
+MIT License - Free for personal and commercial use
+See LICENSE file for details
+
+
+✨ READY TO GET STARTED?
+═══════════════════════════════════════════════════════════════════════════════
+
+Just run this one command:
+
+    sudo bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)
+
+The script will guide you through the rest!
+
+
+═══════════════════════════════════════════════════════════════════════════════
+Version: 1.0.0 | Status: PRODUCTION READY | Date: December 2025
+═══════════════════════════════════════════════════════════════════════════════

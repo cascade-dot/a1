@@ -1,0 +1,32 @@
+# Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Логи
+*.log
+logs/
+
+# Конфиденциальные данные
+*.key
+*.pem
+*.crt
+*.env
+passwords.txt
+tokens.json
+secrets/
+
+# Временные файлы
+tmp/
+temp/
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Системные
+.DS_Store

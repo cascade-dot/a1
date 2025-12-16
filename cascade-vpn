@@ -1,0 +1,468 @@
+#!/bin/bash
+# cascade-vpn - Universal launcher for Cascade VPN installation
+# Downloads and runs the installer from GitHub
+# Usage: bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)
+
+set -euo pipefail
+
+# ==================== CONFIGURATION ====================
+readonly REPO="https://github.com/adminbk/cascade-vpn-universal"
+readonly RAW_REPO="https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main"
+readonly TEMP_DIR="/tmp/cascade-vpn-$$"
+readonly VERSION="1.0.0"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+# ==================== FUNCTIONS ====================
+
+print_header() {
+    echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${CYAN}$*${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+}
+
+print_info() {
+    echo -e "${BLUE}→ INFO:${NC} $*"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ SUCCESS:${NC} $*"
+}
+
+print_error() {
+    echo -e "${RED}✗ ERROR:${NC} $*" >&2
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠ WARNING:${NC} $*"
+}
+
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        print_error "This script must be run as root"
+        echo "Usage: sudo bash <(curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn)"
+        exit 1
+    fi
+}
+
+check_internet() {
+    print_info "Checking internet connection..."
+    if ! ping -c 1 8.8.8.8 &> /dev/null; then
+        print_error "No internet connection available"
+        exit 1
+    fi
+    print_success "Internet connection OK"
+}
+
+check_requirements() {
+    print_info "Checking system requirements..."
+    
+    local missing=()
+    
+    if ! command -v curl &> /dev/null; then
+        missing+=("curl")
+    fi
+    
+    if ! command -v ssh &> /dev/null; then
+        missing+=("openssh-client")
+    fi
+    
+    if ! command -v git &> /dev/null; then
+        missing+=("git")
+    fi
+    
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        print_warning "Missing packages: ${missing[*]}"
+        print_info "Installing missing packages..."
+        
+        if [[ -f /etc/debian_version ]]; then
+            apt-get update -qq
+            apt-get install -y "${missing[@]}" > /dev/null
+        elif [[ -f /etc/redhat-release ]]; then
+            yum install -y "${missing[@]}" > /dev/null
+        fi
+    fi
+    
+    print_success "All requirements satisfied"
+}
+
+setup_temp_dir() {
+    mkdir -p "$TEMP_DIR"
+    trap "rm -rf $TEMP_DIR" EXIT
+    cd "$TEMP_DIR"
+}
+
+download_repo() {
+    print_info "Downloading Cascade VPN repository..."
+    
+    if ! git clone --depth 1 "$REPO" . &> /dev/null; then
+        print_error "Failed to download repository"
+        exit 1
+    fi
+    
+    print_success "Repository downloaded"
+}
+
+show_main_menu() {
+    print_header "Cascade VPN Universal v$VERSION"
+    
+    echo "Select installation mode:"
+    echo ""
+    echo -e "  ${CYAN}[1]${NC} Install VPN on this server"
+    echo -e "  ${CYAN}[2]${NC} Setup port forwarding (Cascade to remote server)"
+    echo -e "  ${CYAN}[0]${NC} Exit"
+    echo ""
+}
+
+show_vpn_menu() {
+    print_header "Select VPN Protocol"
+    
+    echo "Choose which VPN protocol to use:"
+    echo ""
+    echo -e "  ${CYAN}[1]${NC} VLESS + Reality"
+    echo -e "       • Modern, fast, hard to detect"
+    echo -e "       • Clients: Xray, V2rayN, NekoBox, Clash"
+    echo ""
+    echo -e "  ${CYAN}[2]${NC} WireGuard"
+    echo -e "       • Simple, fast, built-in Linux support"
+    echo -e "       • Clients: WireGuard, wg-easy"
+    echo ""
+    echo -e "  ${CYAN}[3]${NC} OpenVPN"
+    echo -e "       • Universal, widely compatible"
+    echo -e "       • Clients: OpenVPN, TunnelBlick, OpenVPN Connect"
+    echo ""
+    echo -e "  ${CYAN}[0]${NC} Back"
+    echo ""
+}
+
+install_vpn_local() {
+    local vpn_type=$1
+    
+    print_header "Installing $vpn_type on this server"
+    
+    case $vpn_type in
+        "VLESS+Reality")
+            print_info "Setting up VLESS + Reality..."
+            print_info "Configure Xray for VLESS protocol with Reality obfuscation"
+            
+            # Source and run installation
+            if [[ -f "services/xray/install.sh" ]]; then
+                bash services/xray/install.sh
+            else
+                print_error "Installation script not found"
+                return 1
+            fi
+            ;;
+        "WireGuard")
+            print_info "Setting up WireGuard..."
+            
+            if [[ -f "services/wireguard/install.sh" ]]; then
+                bash services/wireguard/install.sh
+            else
+                print_error "Installation script not found"
+                return 1
+            fi
+            ;;
+        "OpenVPN")
+            print_info "Setting up OpenVPN..."
+            
+            if [[ -f "services/openvpn/install.sh" ]]; then
+                bash services/openvpn/install.sh
+            else
+                print_error "Installation script not found"
+                return 1
+            fi
+            ;;
+    esac
+    
+    print_success "$vpn_type installation completed!"
+}
+
+setup_cascade() {
+    print_header "Setup Port Forwarding (Cascade)"
+    
+    echo "This mode will:"
+    echo "  1. Connect to remote server via SSH"
+    echo "  2. Install VPN on remote server"
+    echo "  3. Setup port forwarding on this server"
+    echo ""
+    
+    # Get remote server credentials
+    echo "Enter remote server credentials:"
+    read -p "Remote server IP address: " remote_ip
+    read -p "Remote server username (default: root): " remote_user
+    remote_user=${remote_user:-root}
+    read -sp "Remote server password: " remote_pass
+    echo ""
+    
+    # Validate IP
+    if ! [[ $remote_ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        print_error "Invalid IP address"
+        return 1
+    fi
+    
+    print_info "Validating SSH connection to $remote_user@$remote_ip..."
+    
+    # Test SSH connection
+    if ! sshpass -p "$remote_pass" ssh -o StrictHostKeyChecking=no "$remote_user@$remote_ip" "echo test" &> /dev/null; then
+        print_error "Cannot connect to remote server"
+        print_info "Please check IP, username, and password"
+        return 1
+    fi
+    
+    print_success "SSH connection OK"
+    
+    # Show cascade menu
+    show_cascade_vpn_menu
+    read -p "Select VPN type for remote server [1-3]: " cascade_vpn_type
+    
+    case $cascade_vpn_type in
+        1)
+            cascade_install_vless_reality "$remote_ip" "$remote_user" "$remote_pass"
+            ;;
+        2)
+            cascade_install_wireguard "$remote_ip" "$remote_user" "$remote_pass"
+            ;;
+        3)
+            cascade_install_openvpn "$remote_ip" "$remote_user" "$remote_pass"
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            print_error "Invalid choice"
+            return 1
+            ;;
+    esac
+}
+
+show_cascade_vpn_menu() {
+    print_header "Select VPN for Remote Server"
+    
+    echo "Choose VPN protocol to install on remote server:"
+    echo ""
+    echo -e "  ${CYAN}[1]${NC} VLESS + Reality"
+    echo -e "  ${CYAN}[2]${NC} WireGuard"
+    echo -e "  ${CYAN}[3]${NC} OpenVPN"
+    echo -e "  ${CYAN}[0]${NC} Back"
+    echo ""
+}
+
+cascade_install_vless_reality() {
+    local remote_ip=$1
+    local remote_user=$2
+    local remote_pass=$3
+    
+    print_info "Installing VLESS + Reality on $remote_ip..."
+    
+    # Download and run installer on remote server
+    local remote_cmd="curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn | sudo bash -s -- --service vless"
+    
+    execute_remote_command "$remote_ip" "$remote_user" "$remote_pass" "$remote_cmd" || {
+        print_error "Failed to install VLESS on remote server"
+        return 1
+    }
+    
+    print_success "VLESS + Reality installed on $remote_ip"
+    
+    # Setup port forwarding for VLESS (TCP port 443)
+    setup_port_forwarding "vless" "443" "$remote_ip" "tcp"
+}
+
+cascade_install_wireguard() {
+    local remote_ip=$1
+    local remote_user=$2
+    local remote_pass=$3
+    
+    print_info "Installing WireGuard on $remote_ip..."
+    
+    # Download and run installer on remote server
+    local remote_cmd="curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn | sudo bash -s -- --service wireguard"
+    
+    execute_remote_command "$remote_ip" "$remote_user" "$remote_pass" "$remote_cmd" || {
+        print_error "Failed to install WireGuard on remote server"
+        return 1
+    }
+    
+    print_success "WireGuard installed on $remote_ip"
+    
+    # Setup port forwarding for WireGuard (UDP port 51820)
+    setup_port_forwarding "wireguard" "51820" "$remote_ip" "udp"
+}
+
+cascade_install_openvpn() {
+    local remote_ip=$1
+    local remote_user=$2
+    local remote_pass=$3
+    
+    print_info "Installing OpenVPN on $remote_ip..."
+    
+    # Download and run OpenVPN installer on remote server
+    local remote_cmd="curl -s https://raw.githubusercontent.com/adminbk/cascade-vpn-universal/main/cascade-vpn | sudo bash -s -- --service openvpn"
+    
+    execute_remote_command "$remote_ip" "$remote_user" "$remote_pass" "$remote_cmd" || {
+        print_error "Failed to install OpenVPN on remote server"
+        return 1
+    }
+    
+    print_success "OpenVPN installed on $remote_ip"
+    
+    # Setup port forwarding for OpenVPN
+    setup_port_forwarding "openvpn" "1194" "$remote_ip" "udp"
+}
+
+setup_port_forwarding() {
+    local protocol=$1
+    local port=$2
+    local remote_ip=$3
+    local proto_type=${4:-tcp}
+    
+    print_header "Setting Up Port Forwarding"
+    
+    print_info "Configuring $protocol port forwarding to $remote_ip:$port ($proto_type)"
+    
+    # Create iptables rules
+    local local_port=$port
+    read -p "Local port to forward from (default: $port): " input_port
+    local_port=${input_port:-$port}
+    
+    print_info "Creating forwarding rules..."
+    print_info "  Local: 0.0.0.0:$local_port → Remote: $remote_ip:$port ($proto_type)"
+    
+    # Enable IP forwarding
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+    
+    # Create iptables rules for both TCP and UDP if needed
+    if [[ "$proto_type" == "udp" ]] || [[ "$protocol" == "wireguard" ]]; then
+        iptables -t nat -A PREROUTING -d 0.0.0.0/0 -p udp --dport "$local_port" -j DNAT --to-destination "$remote_ip:$port"
+    fi
+    
+    if [[ "$proto_type" == "tcp" ]] || [[ "$protocol" == "vless" ]] || [[ "$protocol" == "openvpn" && "$proto_type" == "tcp" ]]; then
+        iptables -t nat -A PREROUTING -d 0.0.0.0/0 -p tcp --dport "$local_port" -j DNAT --to-destination "$remote_ip:$port"
+    fi
+    
+    iptables -t nat -A POSTROUTING -j MASQUERADE
+    
+    # Make it persistent (if iptables-persistent is available)
+    if command -v iptables-save &> /dev/null; then
+        iptables-save > /etc/iptables/rules.v4
+        print_info "Port forwarding rules saved"
+    fi
+    
+    print_success "Port forwarding configured for $protocol"
+    print_info ""
+    print_value "Local endpoint" "0.0.0.0:$local_port"
+    print_value "Remote server" "$remote_ip:$port"
+}
+
+print_value() {
+    printf "  ${CYAN}%-30s${NC} ${GREEN}%s${NC}\n" "$1:" "$2"
+}
+
+show_clients_info() {
+    print_header "Client Applications"
+    
+    echo -e "${CYAN}VLESS + Reality:${NC}"
+    echo "  • Linux/macOS: Xray CLI, V2rayN (wine), NekoBox"
+    echo "  • Windows: V2rayN, Clash for Windows, NekoBox"
+    echo "  • iOS: Stash, ShadowRocket, Quantumult X"
+    echo "  • Android: NekoBox, Clash, V2rayNG"
+    echo ""
+    
+    echo -e "${CYAN}WireGuard:${NC}"
+    echo "  • Linux: WireGuard, wg-easy"
+    echo "  • Windows: WireGuard App, TunnelBlick"
+    echo "  • macOS: WireGuard, TunnelBlick"
+    echo "  • iOS: WireGuard App"
+    echo "  • Android: WireGuard App"
+    echo ""
+    
+    echo -e "${CYAN}OpenVPN:${NC}"
+    echo "  • Linux: OpenVPN CLI"
+    echo "  • Windows: OpenVPN Connect, TunnelBlick"
+    echo "  • macOS: TunnelBlick, OpenVPN Connect"
+    echo "  • iOS: OpenVPN Connect"
+    echo "  • Android: OpenVPN Connect"
+    echo ""
+}
+
+# ==================== MAIN ====================
+
+main() {
+    check_root
+    
+    print_header "CASCDE VPN UNIVERSAL INSTALLER v$VERSION"
+    
+    check_internet
+    check_requirements
+    setup_temp_dir
+    download_repo
+    
+    # Core optimization
+    if [[ -f "core/system-optimization.sh" ]]; then
+        bash core/system-optimization.sh
+    fi
+    
+    # Main loop
+    while true; do
+        show_main_menu
+        read -p "Enter your choice [0-2]: " main_choice
+        
+        case $main_choice in
+            1)
+                # Install VPN locally
+                while true; do
+                    show_vpn_menu
+                    read -p "Select VPN protocol [0-3]: " vpn_choice
+                    
+                    case $vpn_choice in
+                        1)
+                            install_vpn_local "VLESS+Reality"
+                            break 2
+                            ;;
+                        2)
+                            install_vpn_local "WireGuard"
+                            break 2
+                            ;;
+                        3)
+                            install_vpn_local "OpenVPN"
+                            ;;
+                        0)
+                            break
+                            ;;
+                        *)
+                            print_error "Invalid choice"
+                            ;;
+                    esac
+                done
+                ;;
+            2)
+                # Setup cascade (port forwarding)
+                setup_cascade
+                break
+                ;;
+            0)
+                print_info "Exiting..."
+                exit 0
+                ;;
+            *)
+                print_error "Invalid choice"
+                ;;
+        esac
+    done
+    
+    # Show client info
+    show_clients_info
+    
+    print_success "Installation completed!"
+    print_info "For more information, visit: $REPO"
+}
+
+# Run main
+main "$@"

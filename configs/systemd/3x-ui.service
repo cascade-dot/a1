@@ -1,0 +1,28 @@
+[Unit]
+Description=3X-UI VPN Panel Service
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/3x-ui
+
+# Start Docker container
+ExecStartPre=/usr/bin/docker-compose pull
+ExecStart=/usr/bin/docker-compose up
+
+# Stop Docker container
+ExecStop=/usr/bin/docker-compose down
+
+Restart=on-failure
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=3x-ui
+
+# Environment
+EnvironmentFile=/opt/3x-ui/.env
+
+[Install]
+WantedBy=multi-user.target
