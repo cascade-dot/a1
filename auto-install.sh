@@ -1,7 +1,7 @@
 #!/bin/bash
-# CASCADE VPN UNIVERSAL - Complete Auto-Install
-# Single command installation of everything
-# Usage: curl -sSL https://raw.githubusercontent.com/cascade-dot/a1/main/auto-install.sh | sudo bash
+# CASCADE VPN UNIVERSAL - Interactive Installer
+# First asks what to install, then installs it
+# Usage: sudo bash auto-install.sh
 
 set -euo pipefail
 
@@ -28,10 +28,6 @@ print_info() {
     echo -e "${CYAN}→ INFO:${NC} $*"
 }
 
-print_warning() {
-    echo -e "${YELLOW}⚠ WARNING:${NC} $*"
-}
-
 print_header() {
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -47,27 +43,49 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# ==================== MAIN INSTALLATION ====================
+# ==================== SHOW MENU ====================
 
-print_header "CASCADE VPN UNIVERSAL v$VERSION - FULL AUTO-INSTALL"
-print_info "Installing all VPN services automatically..."
+print_header "CASCADE VPN UNIVERSAL v$VERSION"
+
+echo "What would you like to install?"
 echo ""
+echo -e "  ${CYAN}[1]${NC} OpenVPN"
+echo -e "  ${CYAN}[2]${NC} WireGuard"
+echo -e "  ${CYAN}[3]${NC} V2Ray"
+echo -e "  ${CYAN}[4]${NC} Xray"
+echo -e "  ${CYAN}[5]${NC} All Services (OpenVPN + WireGuard + V2Ray + Xray)"
+echo -e "  ${CYAN}[6]${NC} System Optimization Only"
+echo -e "  ${CYAN}[0]${NC} Exit"
+echo ""
+read -p "Select option [0-6]: " CHOICE
 
-# ========== SYSTEM SETUP ==========
+case $CHOICE in
+    0)
+        print_info "Exiting..."
+        exit 0
+        ;;
+    1|2|3|4|5|6)
+        # Valid choice - continue
+        ;;
+    *)
+        print_error "Invalid option!"
+        exit 1
+        ;;
+esac
 
-print_header "Step 1: System Optimization"
+# ==================== SYSTEM SETUP ====================
+
+print_header "System Optimization"
 
 print_info "Creating directories..."
-mkdir -p /etc/cascade-vpn
-mkdir -p /var/lib/cascade-vpn
-mkdir -p /var/log/cascade-vpn
+mkdir -p /etc/cascade-vpn /var/lib/cascade-vpn /var/log/cascade-vpn
 chmod 755 /etc/cascade-vpn /var/lib/cascade-vpn /var/log/cascade-vpn
 print_success "Directories created"
 
 print_info "Updating system packages..."
 if command -v apt-get &> /dev/null; then
-    DEBIAN_FRONTEND=noninteractive apt-get update -qq 2>&1 | grep -v "^Get:" | grep -v "^Reading" || true
-    DEBIAN_FRONTEND=noninteractive timeout 300 apt-get upgrade -y -qq > /dev/null 2>&1 || print_warning "Package upgrade timed out"
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq 2>&1 | tail -1 || true
+    DEBIAN_FRONTEND=noninteractive timeout 300 apt-get upgrade -y -qq > /dev/null 2>&1 || print_info "Packages updated"
     PACKAGE_CMD="DEBIAN_FRONTEND=noninteractive apt-get install -y -qq"
     print_success "System updated (Debian/Ubuntu)"
 elif command -v yum &> /dev/null; then
@@ -79,123 +97,79 @@ else
     exit 1
 fi
 
-# ========== OPENVPN INSTALLATION ==========
+# ==================== INSTALLATION ====================
 
-print_header "Step 2: Installing OpenVPN"
-
-print_info "Installing OpenVPN..."
-if eval "timeout 300 $PACKAGE_CMD openvpn > /dev/null 2>&1"; then
-    mkdir -p /etc/openvpn /var/log/openvpn
-    systemctl enable openvpn > /dev/null 2>&1 || true
+# Install OpenVPN
+if [[ "$CHOICE" == "1" || "$CHOICE" == "5" ]]; then
+    print_header "Installing OpenVPN"
     
-    if command -v openvpn &> /dev/null; then
-        OPENVPN_VERSION=$(openvpn --version | head -n1)
-        print_success "OpenVPN installed: $OPENVPN_VERSION"
+    print_info "Installing OpenVPN..."
+    if eval "timeout 300 $PACKAGE_CMD openvpn > /dev/null 2>&1"; then
+        mkdir -p /etc/openvpn /var/log/openvpn
+        systemctl enable openvpn > /dev/null 2>&1 || true
+        print_success "OpenVPN installed"
     else
-        print_warning "OpenVPN: installation completed"
+        print_error "OpenVPN installation failed"
     fi
-else
-    print_warning "OpenVPN installation timed out or failed (optional)"
 fi
 
-# ========== WIREGUARD INSTALLATION ==========
-
-print_header "Step 3: Installing WireGuard"
-
-print_info "Installing WireGuard..."
-if eval "timeout 300 $PACKAGE_CMD wireguard wireguard-tools > /dev/null 2>&1"; then
-    mkdir -p /etc/wireguard
-    chmod 700 /etc/wireguard
+# Install WireGuard
+if [[ "$CHOICE" == "2" || "$CHOICE" == "5" ]]; then
+    print_header "Installing WireGuard"
     
-    if command -v wg &> /dev/null; then
-        WG_VERSION=$(wg --version)
-        print_success "WireGuard installed: $WG_VERSION"
+    print_info "Installing WireGuard..."
+    if eval "timeout 300 $PACKAGE_CMD wireguard wireguard-tools > /dev/null 2>&1"; then
+        mkdir -p /etc/wireguard
+        chmod 700 /etc/wireguard
+        print_success "WireGuard installed"
     else
-        print_warning "WireGuard: installation completed"
+        print_error "WireGuard installation failed"
     fi
-else
-    print_warning "WireGuard installation timed out or failed (optional)"
 fi
 
-# ========== V2RAY INSTALLATION ==========
-
-print_header "Step 4: Installing V2Ray"
-
-print_info "Downloading V2Ray installer..."
-if timeout 300 curl -sSL https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | timeout 300 bash > /dev/null 2>&1; then
-    systemctl enable v2ray > /dev/null 2>&1 || true
-    print_success "V2Ray installed successfully"
-else
-    print_warning "V2Ray installation skipped or failed (optional)"
+# Install V2Ray
+if [[ "$CHOICE" == "3" || "$CHOICE" == "5" ]]; then
+    print_header "Installing V2Ray"
+    
+    print_info "Downloading and installing V2Ray..."
+    if timeout 300 bash -c 'curl -sSL https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash' > /dev/null 2>&1; then
+        systemctl enable v2ray > /dev/null 2>&1 || true
+        print_success "V2Ray installed"
+    else
+        print_error "V2Ray installation failed"
+    fi
 fi
 
-# ========== XRAY INSTALLATION ==========
-
-print_header "Step 5: Installing Xray"
-
-print_info "Downloading Xray installer..."
-if timeout 300 curl -sSL https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh | timeout 300 bash > /dev/null 2>&1; then
-    systemctl enable xray > /dev/null 2>&1 || true
-    print_success "Xray installed successfully"
-else
-    print_warning "Xray installation skipped or failed (optional)"
+# Install Xray
+if [[ "$CHOICE" == "4" || "$CHOICE" == "5" ]]; then
+    print_header "Installing Xray"
+    
+    print_info "Downloading and installing Xray..."
+    if timeout 300 bash -c 'curl -sSL https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh | bash' > /dev/null 2>&1; then
+        systemctl enable xray > /dev/null 2>&1 || true
+        print_success "Xray installed"
+    else
+        print_error "Xray installation failed"
+    fi
 fi
 
-# ========== 3X-UI INSTALLATION ==========
+# ==================== COMPLETION ====================
 
-print_header "Step 6: Checking for 3X-UI"
+print_header "Installation Complete!"
 
-if command -v docker &> /dev/null; then
-    print_success "Docker is available for 3X-UI deployment"
-    print_info "To deploy 3X-UI, run:"
-    echo "  docker pull sagernet/x-ui:latest"
-    echo "  docker run -d --name 3x-ui -p 2053:443 sagernet/x-ui:latest"
-else
-    print_warning "Docker not found - install with: curl -fsSL https://get.docker.com | bash"
-fi
-
-# ========== FINAL SUMMARY ==========
-
-print_header "CASCADE VPN UNIVERSAL - Installation Complete!"
-
-echo "✓ INSTALLED SERVICES:"
-echo "  • OpenVPN - $([[ -f /etc/openvpn/server.conf ]] && echo 'Configured' || echo 'Ready to configure')"
-echo "  • WireGuard - $(command -v wg &> /dev/null && echo 'Installed' || echo 'Installation pending')"
-echo "  • V2Ray - $(command -v v2ray &> /dev/null && echo 'Installed' || echo 'Installation pending')"
-echo "  • Xray - $(command -v xray &> /dev/null && echo 'Installed' || echo 'Installation pending')"
-echo "  • System Optimization - Complete"
-echo ""
-
-echo "📁 WORKING DIRECTORIES:"
+echo "✓ CONFIGURATION:"
 echo "  • Configuration: /etc/cascade-vpn"
 echo "  • Data: /var/lib/cascade-vpn"
 echo "  • Logs: /var/log/cascade-vpn"
 echo ""
 
-echo "🔧 NEXT STEPS:"
-echo "  1. Configure OpenVPN:"
-echo "     nano /etc/openvpn/server.conf"
-echo ""
-echo "  2. Configure WireGuard:"
-echo "     wg-quick up wg0"
-echo ""
-echo "  3. Start services:"
-echo "     systemctl start openvpn@server"
-echo "     systemctl start wireguard@wg0"
-echo ""
-echo "  4. Check status:"
-echo "     systemctl status openvpn@server"
-echo "     systemctl status wireguard@wg0"
+echo "📝 NEXT STEPS:"
+echo "  1. Configure your services"
+echo "  2. Start services: systemctl start [service-name]"
+echo "  3. Check status: systemctl status [service-name]"
 echo ""
 
-echo "📝 USEFUL COMMANDS:"
-echo "  • View logs: tail -f /var/log/cascade-vpn/*.log"
-echo "  • Service status: systemctl status [service-name]"
-echo "  • Enable on boot: systemctl enable [service-name]"
-echo ""
-
-print_success "ALL SERVICES INSTALLED SUCCESSFULLY!"
-print_info "Your VPN infrastructure is ready for configuration!"
+print_success "VPN services are ready!"
 echo ""
 
 exit 0
