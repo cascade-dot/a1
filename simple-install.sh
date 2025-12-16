@@ -57,12 +57,12 @@ show_menu() {
     
     echo "Select VPN service to install:"
     echo ""
-    echo "  ${CYAN}[1]${NC} 3X-UI Control Panel"
-    echo "  ${CYAN}[2]${NC} WireGuard VPN"
-    echo "  ${CYAN}[3]${NC} OpenVPN"
-    echo "  ${CYAN}[4]${NC} System Optimization Only"
-    echo "  ${CYAN}[5]${NC} Complete Setup (All services)"
-    echo "  ${CYAN}[0]${NC} Exit"
+    echo -e "  ${CYAN}[1]${NC} 3X-UI Control Panel"
+    echo -e "  ${CYAN}[2]${NC} WireGuard VPN"
+    echo -e "  ${CYAN}[3]${NC} OpenVPN"
+    echo -e "  ${CYAN}[4]${NC} System Optimization Only"
+    echo -e "  ${CYAN}[5]${NC} Complete Setup (All services)"
+    echo -e "  ${CYAN}[0]${NC} Exit"
     echo ""
 }
 
