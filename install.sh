@@ -5,14 +5,14 @@
 set -euo pipefail
 
 # ==================== CONFIGURATION ====================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAIN_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly VERSION="1.0.0"
 readonly INSTALL_DATE=$(date +"%Y-%m-%d %H:%M:%S")
 
 # Source utilities
-source "$SCRIPT_DIR/utils/colors.sh"
-source "$SCRIPT_DIR/utils/logger.sh"
-source "$SCRIPT_DIR/utils/validators.sh"
+source "$MAIN_SCRIPT_DIR/utils/colors.sh"
+source "$MAIN_SCRIPT_DIR/utils/logger.sh"
+source "$MAIN_SCRIPT_DIR/utils/validators.sh"
 
 # ==================== INTERACTIVE MENU ====================
 
@@ -48,13 +48,13 @@ install_3x_ui() {
     
     print_info "3X-UI is a web panel for managing Xray/V2Ray proxies"
     
-    if [[ ! -f "$SCRIPT_DIR/services/3x-ui/install.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/services/3x-ui/install.sh" ]]; then
         print_error "3X-UI installation script not found"
         return 1
     fi
     
     # Source and run installation
-    source "$SCRIPT_DIR/services/3x-ui/install.sh"
+    source "$MAIN_SCRIPT_DIR/services/3x-ui/install.sh"
     
     log_success "3X-UI installation completed"
     log_section_end "Installing 3X-UI Panel" "success"
@@ -65,12 +65,12 @@ install_wireguard() {
     
     print_info "WireGuard with wg-easy web interface for client management"
     
-    if [[ ! -f "$SCRIPT_DIR/services/wireguard/wg-easy.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/services/wireguard/wg-easy.sh" ]]; then
         print_error "WireGuard installation script not found"
         return 1
     fi
     
-    source "$SCRIPT_DIR/services/wireguard/wg-easy.sh"
+    source "$MAIN_SCRIPT_DIR/services/wireguard/wg-easy.sh"
     
     log_success "WireGuard installation completed"
     log_section_end "Installing WireGuard VPN" "success"
@@ -81,12 +81,12 @@ install_shadowsocks() {
     
     print_info "Shadowsocks for traffic obfuscation"
     
-    if [[ ! -f "$SCRIPT_DIR/modules/obfuscation/shadowsocks.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/modules/obfuscation/shadowsocks.sh" ]]; then
         print_error "Shadowsocks installation script not found"
         return 1
     fi
     
-    source "$SCRIPT_DIR/modules/obfuscation/shadowsocks.sh"
+    source "$MAIN_SCRIPT_DIR/modules/obfuscation/shadowsocks.sh"
     
     log_success "Shadowsocks installation completed"
     log_section_end "Installing Shadowsocks 2022" "success"
@@ -97,12 +97,12 @@ install_grpc_tls() {
     
     print_info "gRPC protocol with TLS encryption for traffic masking"
     
-    if [[ ! -f "$SCRIPT_DIR/modules/obfuscation/grpc-tls.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/modules/obfuscation/grpc-tls.sh" ]]; then
         print_error "gRPC+TLS installation script not found"
         return 1
     fi
     
-    source "$SCRIPT_DIR/modules/obfuscation/grpc-tls.sh"
+    source "$MAIN_SCRIPT_DIR/modules/obfuscation/grpc-tls.sh"
     
     log_success "gRPC+TLS installation completed"
     log_section_end "Installing gRPC + TLS Masking" "success"
@@ -121,19 +121,19 @@ setup_certificates() {
     
     case $cert_choice in
         1)
-            if [[ ! -f "$SCRIPT_DIR/modules/certificates/letsencrypt.sh" ]]; then
+            if [[ ! -f "$MAIN_SCRIPT_DIR/modules/certificates/letsencrypt.sh" ]]; then
                 print_error "Let's Encrypt script not found"
                 return 1
             fi
-            source "$SCRIPT_DIR/modules/certificates/letsencrypt.sh"
+            source "$MAIN_SCRIPT_DIR/modules/certificates/letsencrypt.sh"
             install_certbot
             ;;
         2)
-            if [[ ! -f "$SCRIPT_DIR/modules/certificates/selfsigned.sh" ]]; then
+            if [[ ! -f "$MAIN_SCRIPT_DIR/modules/certificates/selfsigned.sh" ]]; then
                 print_error "Self-signed script not found"
                 return 1
             fi
-            source "$SCRIPT_DIR/modules/certificates/selfsigned.sh"
+            source "$MAIN_SCRIPT_DIR/modules/certificates/selfsigned.sh"
             ;;
         0)
             print_info "Certificate setup skipped"
@@ -152,12 +152,12 @@ system_optimization_only() {
     
     print_info "Optimizing system for VPN services"
     
-    if [[ ! -f "$SCRIPT_DIR/core/system-optimization.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/core/system-optimization.sh" ]]; then
         print_error "System optimization script not found"
         return 1
     fi
     
-    source "$SCRIPT_DIR/core/system-optimization.sh"
+    source "$MAIN_SCRIPT_DIR/core/system-optimization.sh"
     main
     
     log_section_end "System Optimization" "success"
@@ -174,12 +174,12 @@ main() {
     
     # Check prerequisites
     print_info "Checking prerequisites..."
-    if [[ ! -f "$SCRIPT_DIR/core/prerequisites.sh" ]]; then
+    if [[ ! -f "$MAIN_SCRIPT_DIR/core/prerequisites.sh" ]]; then
         print_error "Prerequisites script not found"
         return 1
     fi
     
-    source "$SCRIPT_DIR/core/prerequisites.sh"
+    source "$MAIN_SCRIPT_DIR/core/prerequisites.sh"
     
     if ! setup_prerequisites; then
         print_error "Prerequisites check failed"
